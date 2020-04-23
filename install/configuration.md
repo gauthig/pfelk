@@ -1,63 +1,25 @@
 # Configuring (pfSense/OPNsense) + Elasticstack 
 ## Table of Contents
-- [Edit Rule Description](#rule)
 - [Disable Swap](#swap)
 - [Date/Time](#time)
 - [Services](#services)
 - [Firewall](#firewall)
 - [Kibana](#kibana)
-# Rule
-## 1a Fix rules in pfSense/OPNsense
-- Go to your pfSense GUI and go to Firewall -> Rules.
-- Ensure the rules have a description, this is the text you will see in Kibana
-- Block rules normaly have logging on, if you want to see good traffic also, enable logging for pass rules.  
-
-## 1b Extract rule descriptions with associated tracking number
-
-- In pfSense/OPNSense and go to diganotics -> commandline
-- Enter the following command in the execute shell command box and click the execute button
-```
-pfctl -vv -sr | grep USER_RULE | sed 's/[^(]*(\([^)]*\).*"USER_RULE: *\([^"]*\).*/"\1"=> "\2"/' | sort -t ' ' -k 1,1 -u
-```
-The results will look something like this:
-
-"1570852062"=> "OpenVPN  UDP 1194"
-"1570852366"=> "OpenVPN TCP 444"
-"1570891282"=> "LAN-Default Pass"
-"1572797267"=> "DMZ-Block"
-"1573529058"=> "HTTPS Web Server"
-"1573529295"=> "HTTP Web Server"
-"1583898798"=> "DMZ-Outbound Only"
-"1583947034"=> "SSH node1"
-"1770001239"=> "pfB_DNSBL_Ping"
-"1770001466"=> "pfB_DNSBL_Permit"
-"1770005939"=> "pfB_DNSBLIP_v4 auto rule"
-
-Copy the entire results to your clipboard
-
-## 1c Update the logstash configuration
-
-- Go back to the server you installed ELK on.
-```
-sudo nano /etc/logstash/conf.d/35-rules-desc.conf
-```
-- Paste the the results from pfSense/OPNsense into the first blank line after "1000000003"=> "default_block"
-## You must repeat step 1 (Rules) if you add new rules in pfSense/OPNsense and then restart logstash
 
 # Swap
-#### - 2. Disabling Swap
+#### - 1. Disabling Swap
 Swapping needs to be disabled for performance and stability.
 ```
 sudo swapoff -a
 ```
 # Time
-#### - 3. Configuration Date/Time Zone
+#### - 2. Configuration Date/Time Zone
 The box running this configuration will reports firewall logs based on its clock.  The command below will set the timezone to Eastern Standard Time (EST).  To view available timezones type `sudo timedatectl list-timezones`
 ```
 sudo timedatectl set-timezone EST
 ```
 # Services
-#### - 4a. Start Services on Boot as Services (you'll need to reboot or start manually to proceed)
+#### - 3a. Start Services on Boot as Services (you'll need to reboot or start manually to proceed)
 ```
 sudo /bin/systemctl daemon-reload
 sudo /bin/systemctl enable elasticsearch.service
